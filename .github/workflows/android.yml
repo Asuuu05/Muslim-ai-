@@ -25,6 +25,29 @@ jobs:
       - name: Extract Android project
         run: |
           unzip MuslimAI_AndroidStudio.zip -d extracted
+                - name: Fix Java and Kotlin version mismatch
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path("extracted/MuslimAI_AndroidStudio/app/build.gradle.kts")
+          s = p.read_text()
+
+          marker = "    compileSdk = 35\n"
+          fix = """    compileOptions {
+              sourceCompatibility = JavaVersion.VERSION_17
+              targetCompatibility = JavaVersion.VERSION_17
+          }
+          kotlinOptions {
+              jvmTarget = "17"
+          }
+          """
+
+          if "compileOptions" not in s:
+              s = s.replace(marker, marker + fix, 1)
+
+          p.write_text(s)
+          PY
 
       - name: Build APK
         run: |
